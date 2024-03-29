@@ -1,0 +1,6 @@
+---
+- name: Install Maven
+  hosts: demo
+  become: true
+  roles:
+    - install_maven
