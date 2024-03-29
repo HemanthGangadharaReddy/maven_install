@@ -1,0 +1,32 @@
+---
+- name: Install java in Amazon linux
+  ansible.builtin.yum:
+    name: "{{ java_package }}"
+    state: present
+  when: ansible_os_family == 'RedHat'
+- name: Install java in Ubuntu linux
+  ansible.builtin.apt:
+    name: "{{ java_package_ubuntu }}"
+    state: present
+  when: ansible_os_family == 'Debian'
+- name: Download Maven
+  ansible.builtin.get_url:
+    url: https://dlcdn.apache.org/maven/maven-3/{{ maven_version }}/binaries/apache-maven-{{ maven_version }}-bin.tar.gz
+    dest: /opt/
+    mode: "0644"
+- name: Extract the downloaded maven
+  ansible.builtin.unarchive:
+    src: /opt/apache-maven-{{ maven_version }}-bin.tar.gz
+    dest: /opt/
+    remote_src: true
+    creates: /opt/apache-maven-{{ maven_version }}
+- name: Rename Maven
+  ansible.builtin.command: mv /opt/apache-maven-{{ maven_version }} /opt/maven
+  args:
+    creates: /opt/maven
+- name: Set Maven environment variables
+  ansible.builtin.template:
+    src: maven.sh.j2
+    dest: /etc/profile.d/maven.sh
+    mode: "0777"
+  notify: Reload Shell
